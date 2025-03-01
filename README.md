@@ -11,3 +11,15 @@ Fomos contratados por um grande banco para desenvolver o seu novo sistema. Esse 
 
 - Operação de extrato: Essa operação deve listar todos os depósitos e saques realizados na conta. No fim da listagem deve ser exibido o saldo atual da conta. Se o extrato estiver em branco, exibir a mensagem: Não foram realizadas movimentações.
   Os valores devem ser exibidos utilizando o formato R$ xxx.xx, exemplo: 1500.45 = R$ 1500.45
+
+**Desafio DIO - Criando um Sistema Bancário com Python Pt. 2**
+
+_Objetivo Geral_  
+Exercitar o novo conhecimento sobre data e hora implementando funcionalidades sobre esse tema. Seguindo versionamento: v0.2
+
+_Desafio_  
+Implementar funcionalidade de data e hora no sistema feito anteriormente onde:
+
+- Deverá ser estabelecido um limite de 10 transações diárias para a conta.
+- Se o usuário tentar fazer uma transação após o limite, ele deverá ser informado que excedeu o limite daquele dia.
+- Mostrar no extrato a data e a hora de todas as transações.
