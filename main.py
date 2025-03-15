@@ -1,4 +1,5 @@
-from datetime import datetime
+from deposito import Deposito
+from saque import Saque
 
 LIMITE_SAQUE = 500
 LIMITE_QUANT_SAQUES = 10
@@ -12,52 +13,109 @@ MENU = '''
 [x] Sair
 
 '''
-clientes = []
-contas = []
+def filtrar_clientes(clientes, cpf):
+    clientes_filtrados = [cliente for cliente in clientes if cliente["cpf"] == cpf]
+    return clientes_filtrados[0] if len(clientes_filtrados) > 0 else None
 
-qtde_saques = 0 #len(extrato["extrato"][get_data()]) if extrato["extrato"].get(get_data()) is not None else 0
-
-def get_data():
-    return datetime.today().strftime("%d/%m/%Y")
-
-def get_hora():
-    return datetime.today().strftime("%H:%M:%S")
-
-def selecionar_usuario(clientes):
-    cpf = input("Digite seu CPF: ").replace(".", "").replace("-", "")
-    resposta = consultar_usuario(cpf, clientes)
-    if resposta != None:
-        return resposta
-    else:
-        print("Cliente não cadastrado.")
-    return {}
-
-def selecionar_conta(contas, cpf):
-    contas_usuario = listar_contas(contas, cpf)
-    if len(contas_usuario) > 0:
-        for conta in contas_usuario:
-            print(f"Conta: {conta['conta']} - Agência: {conta['agencia']}")
-        conta = int(input("Digite o número da conta: "))
-        for c in contas_usuario:
-            if c["conta"] == conta:
-                return c
-    else:
-        print("Cliente não possui contas.")
-    return None
-
-
-def listar_contas(contas, cpf):
-    contas_usuario = []
+def listar_contas(contas):
     for conta in contas:
-        if conta["usuario"] == cpf:
-            contas_usuario.append(conta)
-    return contas_usuario
+        print(f"Agência: {conta.agencia} - Conta: {conta.conta}")
+    
+def filtrar_contas(contas, numero):
+    contas_filtradas = [conta for conta in contas if conta.conta == numero]
+    return contas_filtradas[0] if len(contas_filtradas) > 0 else None
 
-def consultar_usuario(cpf, clientes):
-    for cliente in clientes:
-        if cliente["cpf"] == cpf:
-            return cliente
-    return None
+def selecionar_cliente(clientes):
+    cpf = input("Digite o CPF: ")
+    cliente = filtrar_clientes(clientes, cpf)
+    return cliente
+
+def selecionar_conta(contas):
+    if len(contas) < 1:
+        print("Cliente não possui contas.")
+        return
+    listar_contas(contas)
+    numero = input("Digite o número da conta: ")
+    conta = filtrar_contas(contas, numero)
+    return conta
+
+def identificacao_cliente_conta(clientes):
+    cliente = selecionar_cliente(clientes)
+    if not cliente:
+        print("Cliente não encontrado.")
+        return
+    
+    conta = selecionar_conta(cliente.contas)
+    if not conta:
+        print("Conta não encontrada.")
+        return
+    
+    return cliente, conta
+
+def depositar(clientes):
+    cliente, conta = identificacao_cliente_conta(clientes)   
+    valor = float(input("Digite o valor a ser depositado: "))
+    transacao = Deposito(valor)
+
+    if cliente and conta and transacao:
+        cliente.realizar_trasacao(conta, transacao)
+    else:
+        print("Transação invalidada devido a dados inconsistentes. Favor, Acione o gerente.")
+        return
+
+def sacar(clientes):
+    cliente, conta = identificacao_cliente_conta(clientes)   
+    valor = float(input("Digite o valor a ser depositado: "))
+    transacao = Saque(valor)
+    
+    if cliente and conta and transacao:
+        cliente.realizar_trasacao(conta, transacao)
+    else:
+        print("Transação invalidada devido a dados inconsistentes. Favor, Acione o gerente.")
+        return
+    
+def extrato(clientes):
+    cliente, conta = identificacao_cliente_conta(clientes)
+    if cliente and conta:
+        print("Extrato:".center(44, "-"))
+        transacoes = conta.historico.transacoes
+        if transacoes:
+            data = 0
+            extrato = ""
+            for transacao in transacoes:
+                if data != transacao.data:
+                    data = transacao.data.strftime("%d/%m/%Y")
+                    extrato += f"{transacao.data.strftime("%d/%m/%Y")}\n"
+                else:
+                    extrato += f"{transacao.data.strftime('%H:%M:%S')} - {transacao.tipo} - R$ {transacao.valor:,.2f}"
+            print(extrato)
+            print(f"Saldo:              R$ {conta.saldo:,.2f}")
+        else:
+            print("Não foram efetuadas transações até o momento nesta conta.")
+        
+    
+
+def main():
+    clientes = []
+    contas = []
+
+    while True:
+        opcao = input(MENU)
+        if opcao == 'd':
+            depositar(clientes)
+        elif opcao == 's':
+            sacar(clientes)
+        elif opcao == 'e':
+            extrato(clientes)
+        elif opcao == 'a':
+            pass
+        elif opcao == 'c':
+            pass
+        elif opcao == 'x':
+            break
+        else:
+            print("Opção inválida.")
+
 
 def criar_usuario(clientes):
     cpf = input("Digite seu CPF: ").replace(".", "").replace("-", "")
@@ -87,34 +145,6 @@ def criar_conta_corrente(cpf, clientes, contas):
         print("Cliente não encontrado.")
     return contas
 
-def depositar(saldo, extrato,/):
-    valor = float(input("Digite o valor a ser depositado: "))
-    if valor > 0:
-        saldo += valor
-        extrato = set_extrato(extrato, "Depósito", valor)
-    else:
-        print("Valor inválido.")
-    return saldo, extrato
-
-def sacar(*, extrato, saldo):
-    valor = float(input("Digite o valor a ser sacado: "))
-    if 0 < valor <= LIMITE_SAQUE:
-        if saldo >= valor:
-            saldo -= valor
-            extrato = set_extrato(extrato, "Saque", valor)
-            qtde_saques += 1
-        else:
-            print("Saldo insuficiente.")
-    else:
-        print("Valor inválido ou fora do limite da conta.")
-    return saldo, extrato
-
-def set_extrato(extrato, tipo_transacao, valor):
-    if extrato["extrato"].get(get_data()) != None:
-        extrato["extrato"][get_data()][get_hora()] = {"tipo_transacao": tipo_transacao, "valor": valor}
-    else:
-        extrato["extrato"][get_data()] = {get_hora() :{"tipo_transacao": tipo_transacao, "valor": valor}}
-    return extrato
 
 def get_extrato(saldo, /, *, extrato):
     print("Extrato:".center(44, "-"))
@@ -125,17 +155,11 @@ def get_extrato(saldo, /, *, extrato):
             print(data)
             for hora, transacao in extrato["extrato"][data].items():
                 print(f"{hora} - {transacao['tipo_transacao']}             R$ {transacao['valor']:,.2f}")
-    print(f"Saldo:              R$ {saldo:,.2f}")
+    
 
 while True:
     opção = input(MENU)
     if opção == 'd':
-        usuario = selecionar_usuario(clientes)
-        conta = selecionar_conta(contas, usuario.get('cpf'))
-        if usuario != None and conta != None:
-            conta['saldo'], conta['extrato'] = depositar(conta['saldo'], conta['extrato'])
-        else:
-            print("Usuário ou conta não encontrados.")
     elif opção == 's':
         usuario = selecionar_usuario(clientes)
         conta = selecionar_conta(contas, usuario.get('cpf'))
