@@ -2,7 +2,7 @@ from transacao import Transacao
 
 class Deposito(Transacao):
     def __init__(self, valor):
-        self.valor = valor
+        self._valor = valor
     
     @property
     def valor(self):
@@ -12,4 +12,4 @@ class Deposito(Transacao):
         sucesso_transacao = conta.depositar(self.valor)
 
         if sucesso_transacao:
-            conta.historico.transacoes.append(self)
+            conta.historico.adicionar_transacao(self)

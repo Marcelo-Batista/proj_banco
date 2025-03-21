@@ -9,7 +9,7 @@ class Conta_corrente(Conta):
     
     def sacar(self, valor):
         saques_realizados = len(
-            [transacao for transacao in self.historico.transacoes if transacao.tipo == Saque.__name__]
+            [registro for registro in self.historico.transacoes if registro["tipo"] == Saque.__name__]
         )
 
         excedeu_limite = valor > self.limite

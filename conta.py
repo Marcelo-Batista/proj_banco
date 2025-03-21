@@ -2,11 +2,11 @@ from historico import Historico
 
 class Conta:
     def __init__(self, conta, cliente):
-        self.agencia = "0001"
-        self.conta = conta
-        self.saldo = 0
-        self.cliente = cliente
-        self.historico = Historico()
+        self._agencia = "0001"
+        self._conta = conta
+        self._saldo = 0
+        self._cliente = cliente
+        self._historico = Historico()
     
     @classmethod
     def nova_conta(cls, numero, cliente):
@@ -14,37 +14,37 @@ class Conta:
     
     @property
     def saldo(self):
-        return self.saldo
+        return self._saldo
     
     @property
     def agencia(self):
-        return self.agencia
+        return self._agencia
     
     @property
     def conta(self):
-        return self.conta
+        return self._conta
     
     @property
     def cliente(self):
-        return self.cliente
+        return self._cliente
     
     @property
     def historico(self):
-        return self.historico
+        return self._historico
 
     def depositar(self, valor):
         valida_valor = valor > 0
         if valida_valor:
-            self.saldo += valor
+            self._saldo += valor
             return True
         print("Valor inválido.")
         return False
 
     def sacar(self, valor):
-        saldo = self.saldo
+        saldo = self._saldo
         saldo_suficiente = saldo >= valor
         if saldo_suficiente:
-            self.saldo -= valor
+            self._saldo -= valor
             return True
         elif valor < 0:
             print("Valor inválido.")
